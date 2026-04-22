@@ -37,62 +37,62 @@ function ScoreGauge({ score }) {
       </div>
     </div>
   );
-}
-
-const MERCHANTS = [
-  'Amazon India', 'Flipkart', 'Zepto Grocery', 'Zomato', 'MakeMyTrip',
-  'CryptoExchange Pro', 'Tanishq Jewels', 'Casino Royale Online',
-  'SBI Wire Transfer', 'PharmEasy', 'Reliance Fresh', 'BookMyShow', 'Ola Cabs'
-];
+import { 
+  ShieldAlert, 
+  ShieldCheck, 
+  Zap, 
+  Download,
+  Terminal,
+  Activity
+} from 'lucide-react';
 
 export default function AnalyzePage() {
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     cardHolderName: '',
     cardNumber: '',
     amount: '',
     merchantName: '',
-    merchantCategory: 'electronics',
+    merchantCategory: 'retail',
     country: 'IN',
     transactionType: 'online',
     isNewMerchant: false
   });
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [playbackStep, setPlaybackStep] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     setResult(null);
+    setPlaybackStep(0);
+
     try {
-      const res = await fetch(`${API}/api/analyze`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...formData,
+          amount: parseFloat(formData.amount)
+        }),
       });
       const data = await res.json();
-      if (data.success) setResult(data.data);
-      else setError(data.error);
-    } catch (e) {
-      setError('Cannot connect to API. Make sure backend is running.');
+      
+      // Simulate playback steps for UX
+      for(let i = 1; i <= 3; i++) {
+        await new Promise(r => setTimeout(r, 600));
+        setPlaybackStep(i);
+      }
+      
+      setResult(data.data);
+    } catch (err) {
+      console.error('Analysis failed', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const reset = () => { setResult(null); setForm({ cardHolderName: '', cardNumber: '', amount: '', merchantName: '', merchantCategory: 'electronics', country: 'IN', transactionType: 'online', isNewMerchant: false }); };
-
-  const statusConfig = result ? {
-    fraud: { icon: AlertTriangle, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', label: '🚨 FRAUD DETECTED', desc: 'This transaction has been flagged as fraudulent and should be blocked immediately.' },
-    suspicious: { icon: AlertCircle, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', label: '⚠️ SUSPICIOUS', desc: 'This transaction requires manual review before processing.' },
-    safe: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)', label: '✅ TRANSACTION SAFE', desc: 'This transaction appears legitimate and can be processed.' }
-  }[result.status] : null;
 
   return (
     <div className="page-container animate-fade-in">

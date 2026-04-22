@@ -157,24 +157,110 @@ export default function AdminPage() {
                   background: `rgba(${m.color.replace('#', '').match(/.{2}/g)?.map(h => parseInt(h, 16)).join(',')}, 0.08)`,
                   border: `1px solid rgba(${m.color.replace('#', '').match(/.{2}/g)?.map(h => parseInt(h, 16)).join(',')}, 0.2)`
                 }}>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: m.color }}>{m.value}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: m.color, marginBottom: 2 }}>{m.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{m.desc}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Detection Rules Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="glass-panel p-8">
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-8 uppercase tracking-widest">
+              <Shield size={18} className="text-accent-blue" />
+              Active Detection Heuristics
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {rules.map((rule) => (
+                <div key={rule.id} className="p-4 rounded-xl bg-bg-secondary border border-border flex items-start justify-between group hover:border-accent-blue/30 transition-all">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-sm text-text-primary">{rule.name}</p>
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${rule.severity === 'HIGH' ? 'bg-accent-red/10 text-accent-red' : 'bg-accent-blue/10 text-accent-blue'}`}>
+                        {rule.severity}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-text-muted leading-tight">{rule.desc}</p>
+                  </div>
+                  <button onClick={() => toggleRule(rule.id)} className="text-accent-blue">
+                    {rule.active ? <ToggleRight size={24} /> : <ToggleLeft size={24} className="text-text-muted" />}
+                  </button>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid var(--border)' }}>
+          </div>
+
+          {/* Rule Simulator Feature */}
+          <div className="glass-panel p-8 bg-gradient-to-br from-bg-card to-bg-secondary">
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-6 uppercase tracking-widest">
+              <Cpu size={18} className="text-accent-cyan" />
+              Neural Weight Simulator
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-text-muted uppercase">Base Sensitivity</label>
+                <input type="range" className="w-full accent-accent-blue" defaultValue={75} />
+                <div className="flex justify-between text-[10px] font-bold">
+                  <span>Relaxed</span>
+                  <span>Strict</span>
+                </div>
+              </div>
+              <div className="md:col-span-2 p-4 rounded-xl bg-bg-primary/50 border border-border">
+                <p className="text-xs font-medium text-text-secondary leading-relaxed">
+                  Adjusting the **Neural Weight** affects how individual heuristics aggregate into the final risk score. Higher sensitivity will reduce False Negatives but may increase False Positives.
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-accent-cyan text-xs font-bold cursor-pointer hover:underline">
+                  View Probability Distribution <ChevronRight size={14} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Sidebar */}
+        <div className="space-y-6">
+          <div className="glass-panel p-8 flex flex-col gap-8">
+            <h3 className="text-sm font-bold flex items-center gap-2 uppercase tracking-widest">
+              <BarChart3 size={18} className="text-accent-purple" />
+              Engine Performance
+            </h3>
+            
+            <div className="space-y-6">
               {[
-                { label: 'Precision', value: '94.4%' },
-                { label: 'Recall', value: '92.1%' },
-                { label: 'F1 Score', value: '93.2%' },
-                { label: 'Accuracy', value: '96.1%' },
-              ].map(m => (
-                <div key={m.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{m.label}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>{m.value}</span>
+                { label: 'Precision', value: '94.4%', sub: 'True Positive Rate', color: 'blue' },
+                { label: 'Recall', value: '92.1%', sub: 'False Negative avoidance', color: 'purple' },
+                { label: 'F1 Score', value: '93.2%', sub: 'Combined Efficiency', color: 'cyan' }
+              ].map((metric, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-[10px] font-bold text-text-muted uppercase">{metric.label}</p>
+                      <p className="text-[10px] text-text-muted/60">{metric.sub}</p>
+                    </div>
+                    <p className={`text-xl font-black text-accent-${metric.color}`}>{metric.value}</p>
+                  </div>
+                  <div className="h-1 bg-bg-secondary rounded-full overflow-hidden">
+                    <div className={`h-full bg-accent-${metric.color}`} style={{ width: metric.value }} />
+                  </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="glass-panel p-8">
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-6 uppercase tracking-widest">
+              <Database size={18} className="text-accent-green" />
+              Database Health
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-text-muted font-medium">Uptime</span>
+                <span className="text-text-primary font-bold mono">99.98%</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-text-muted font-medium">Active Workers</span>
+                <span className="text-text-primary font-bold mono">12 Nodes</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-text-muted font-medium">Daily Queries</span>
+                <span className="text-text-primary font-bold mono">1.2M</span>
+              </div>
             </div>
           </div>
         </div>
